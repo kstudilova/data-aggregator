@@ -5,6 +5,8 @@ import exception.ApiResponseException;
 import http.HttpService;
 import model.AggregatedRecord;
 import parser.JsonResponseParser;
+import service.DataAggregator;
+import source.DataSource;
 import source.OpenVanSource;
 import source.OsrmSource;
 import source.WikipediaSource;
@@ -17,12 +19,22 @@ public class Main {
         HttpService httpService = new HttpService();
         JsonResponseParser jsonParser = new JsonResponseParser();
 
-        OsrmSource source = new OsrmSource(httpService, jsonParser, 30.3158, 59.9391, 30.3609, 59.9311);
+        List< DataSource > sources = List.of(
+                new OpenVanSource(httpService, "ru", jsonParser),
+                new WikipediaSource(httpService,"Казанский собор", jsonParser),
+                new OsrmSource(httpService, jsonParser, 30.3158, 59.9391, 30.3609, 59.9311)
+        );
+        DataAggregator aggregator = new DataAggregator(sources);
+
         try {
-            List<AggregatedRecord> records = source.fetch();
+            List<AggregatedRecord> records = aggregator.collect();
 
             System.out.println("Получено записей: " + records.size());
-            System.out.println("Источник данных: OSRM");
+            System.out.println("Источники данных:");
+            System.out.println("  Цены на топливо — OpenVan: https://openvan.camp/ (CC BY 4.0)");
+            System.out.println("  Статьи о местах — Wikipedia: https://ru.wikipedia.org/");
+            System.out.println("  Маршруты — OSRM: https://project-osrm.org/");
+            System.out.println();
 
             for (AggregatedRecord record : records) {
                 System.out.println("Источник: " + record.getSource());
