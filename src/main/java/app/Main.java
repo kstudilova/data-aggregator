@@ -6,6 +6,7 @@ import http.HttpService;
 import model.AggregatedRecord;
 import parser.JsonResponseParser;
 import source.OpenVanSource;
+import source.WikipediaSource;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,13 +16,12 @@ public class Main {
         HttpService httpService = new HttpService();
         JsonResponseParser jsonParser = new JsonResponseParser();
 
-        OpenVanSource source = new OpenVanSource(httpService, "ru", jsonParser);
-
+        WikipediaSource source = new WikipediaSource(httpService, "Казанский собор", jsonParser);
         try {
             List<AggregatedRecord> records = source.fetch();
 
             System.out.println("Получено записей: " + records.size());
-            System.out.println("Данные: https://openvan.camp/ (CC BY 4.0)");
+            System.out.println("Источник данных: Wikipedia");
 
             for (AggregatedRecord record : records) {
                 System.out.println("Источник: " + record.getSource());
