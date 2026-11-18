@@ -91,6 +91,10 @@ public class OpenVanSource implements DataSource {
 
             records.add(record);
         }
+
+        if (records.isEmpty()) {
+            throw new ApiResponseException("Нет доступных цен на топливо для страны " + countryCode);
+        }
         return records;
     }
 }
