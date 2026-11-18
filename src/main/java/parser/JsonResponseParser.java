@@ -46,4 +46,14 @@ public class JsonResponseParser {
 
         return element.getAsString();
     }
+
+    public double getRequiredDouble(JsonObject parent, String fieldName) {
+        JsonElement element = parent.get(fieldName);
+
+        if (element == null || !element.isJsonPrimitive() || !element.getAsJsonPrimitive().isNumber()) {
+            throw new ApiResponseException("В ответе отсутствует число или указан неверный тип: " + fieldName);
+        }
+
+        return element.getAsDouble();
+    }
 }
