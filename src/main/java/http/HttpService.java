@@ -18,6 +18,7 @@ public class HttpService {
     public String get(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
+                .header("User-Agent", "DataAggregator/1.0 (https://github.com/kstudilova/data-aggregator)")
                 .GET()
                 .build();
 
