@@ -20,3 +20,8 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks.withType<JavaExec>().configureEach {
+    systemProperty("stdout.encoding", "UTF-8")
+    systemProperty("stderr.encoding", "UTF-8")
+}
