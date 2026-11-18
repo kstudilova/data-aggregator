@@ -1,5 +1,6 @@
 package parser;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -20,8 +21,29 @@ public class JsonResponseParser {
         JsonElement element = parent.get(fieldName);
 
         if (element == null || !element.isJsonObject()) {
-            throw new ApiResponseException(" ответе отсутствует объект или указан невеный тип: " + fieldName);
+            throw new ApiResponseException("В ответе отсутствует объект или указан невеный тип: " + fieldName);
         }
+
         return element.getAsJsonObject();
+    }
+
+    public JsonArray getRequiredArray(JsonObject parent, String fieldName) {
+        JsonElement element = parent.get(fieldName);
+
+        if (element == null || !element.isJsonArray()) {
+            throw new ApiResponseException("В ответе отсутсвует массив или указан неверный тип: " + fieldName);
+        }
+
+        return element.getAsJsonArray();
+    }
+
+    public String getRequiredString(JsonObject parent, String fieldName) {
+        JsonElement element = parent.get(fieldName);
+
+        if (element == null || !element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
+            throw new ApiResponseException("В ответе отсутствует строка или указан неверный тип: " + fieldName);
+        }
+
+        return element.getAsString();
     }
 }
