@@ -1,17 +1,46 @@
-package model.example;
+package app;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import com.google.gson.JsonSyntaxException;
+import exception.ApiResponseException;
+import http.HttpService;
+import model.AggregatedRecord;
+import parser.JsonResponseParser;
+import source.OpenVanSource;
+
+import java.io.IOException;
+import java.util.List;
+
 public class Main {
-    static void main() {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        IO.println(String.format("Hello and welcome!"));
+    public static void main(String[] args) {
+        HttpService httpService = new HttpService();
+        JsonResponseParser jsonParser = new JsonResponseParser();
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            IO.println("i = " + i);
+        OpenVanSource source = new OpenVanSource(httpService, "ru", jsonParser);
+
+        try {
+            List<AggregatedRecord> records = source.fetch();
+
+            System.out.println("Получено записей: " + records.size());
+            System.out.println("Данные: https://openvan.camp/ (CC BY 4.0)");
+
+            for (AggregatedRecord record : records) {
+                System.out.println("Источник: " + record.getSource());
+                System.out.println("Категория: " + record.getCategory());
+                System.out.println("Название: " + record.getTitle());
+                System.out.println("Характеристики: " + record.getAttributes());
+                System.out.println();
+            }
+        } catch (ApiResponseException e) {
+            System.err.println("Ошибка ответа API: " + e.getMessage());
+        } catch (JsonSyntaxException e) {
+            System.err.println("Некорректный JSON: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.err.println("Некорректный аргумент: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Ошибка соединения: " + e.getMessage());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Запрос прерван");
         }
     }
 }
