@@ -15,4 +15,13 @@ public class JsonResponseParser {
 
         return parsed.getAsJsonObject();
     }
+
+    public JsonObject getRequiredObject(JsonObject parent, String fieldName) {
+        JsonElement element = parent.get(fieldName);
+
+        if (element == null || !element.isJsonObject()) {
+            throw new ApiResponseException(" ответе отсутствует объект или указан невеный тип: " + fieldName);
+        }
+        return element.getAsJsonObject();
+    }
 }
