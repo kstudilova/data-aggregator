@@ -33,25 +33,24 @@ public class OpenVanSource implements DataSource {
         String responseBody = httpService_.get(url);
 
         JsonObject root = jsonParser_.parse(responseBody);
-        if (!root.get("success").getAsBoolean()) {
+
+        JsonElement success = root.get("success");
+        if (success == null || !success.isJsonPrimitive() || !success.getAsJsonPrimitive().isBoolean()) {
+            throw new ApiResponseException("В ответе OpenVan отсутствует или некорректно поле success");
+        }
+        if (!success.getAsBoolean()) {
             throw new ApiResponseException("OpenVan сообщил об ошибке");
         }
 
-        JsonObject data = root.getAsJsonObject("data");
-        if (data == null) {
-            throw new ApiResponseException("В ответе OpenVan отсутствуют данные");
-        }
+        JsonObject data = jsonParser_.getRequiredObject(root, "data");
 
         String countryCode = country_.toUpperCase(Locale.ROOT);
-        JsonObject countryData = data.getAsJsonObject(countryCode);
-        if (countryData == null) {
-            throw new ApiResponseException("В ответе нет данных для страны: " + countryCode);
-        }
+        JsonObject countryData = jsonParser_.getRequiredObject(data, countryCode);
 
-        JsonObject prices = countryData.getAsJsonObject("prices");
-        if (prices == null) {
-            throw new ApiResponseException("В ответе нет цен на топливо для страны: " + countryCode);
-        }
+        JsonObject prices = jsonParser_.getRequiredObject(countryData, "prices");
+
+        JsonObject currencies = jsonParser_.getRequiredObject(countryData, "currencies");
+        JsonObject units = jsonParser_.getRequiredObject(countryData, "units");
 
         List< AggregatedRecord > records = new ArrayList< >();
         Instant fetchedAt = Instant.now();
@@ -63,12 +62,30 @@ public class OpenVanSource implements DataSource {
             if (priceElement.isJsonNull()) {
                 continue;
             }
+
+            if (!priceElement.isJsonPrimitive() || !priceElement.getAsJsonPrimitive().isNumber()) {
+                throw new ApiResponseException("Некорректная цена для: " + fuelType);
+            }
             String price = priceElement.getAsString();
+
+            JsonElement currencyElement = currencies.get(fuelType);
+            JsonElement unitElement = units.get(fuelType);
+            if (currencyElement == null || currencyElement.isJsonNull() || unitElement == null || unitElement.isJsonNull()) {
+                throw new ApiResponseException("Не указаны валюта или единица измерения для: " + fuelType);
+            }
+            if (!currencyElement.isJsonPrimitive() || !currencyElement.getAsJsonPrimitive().isString() || !unitElement.isJsonPrimitive() || !unitElement.getAsJsonPrimitive().isString()) {
+                throw new ApiResponseException("Некорректная валюта или единица измерения для: " + fuelType);
+            }
+
+            String currency = currencyElement.getAsString();
+            String unit = unitElement.getAsString();
 
             Map< String, String > attributes = new HashMap< >();
             attributes.put("country", countryCode);
             attributes.put("fuelType", fuelType);
             attributes.put("price", price);
+            attributes.put("currency", currency);
+            attributes.put("unit", unit);
 
             AggregatedRecord record = new AggregatedRecord(getName(), "fuel", fuelType + " - " + countryCode, fetchedAt, attributes);
 
