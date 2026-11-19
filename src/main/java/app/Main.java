@@ -1,5 +1,6 @@
 package app;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import exception.ApiResponseException;
 import http.HttpService;
@@ -10,8 +11,11 @@ import source.DataSource;
 import source.OpenVanSource;
 import source.OsrmSource;
 import source.WikipediaSource;
+import storage.CsvStorage;
+import storage.RecordStorage;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 public class Main {
@@ -26,8 +30,29 @@ public class Main {
         );
         DataAggregator aggregator = new DataAggregator(sources);
 
+        Gson gson = new Gson();
+        RecordStorage storage = new CsvStorage(gson);
+        Path path = Path.of("csv-check.csv");
+
         try {
             List<AggregatedRecord> records = aggregator.collect();
+
+            storage.save(path, records, false);
+
+            List<AggregatedRecord> loadedRecords = storage.read(path);
+
+            System.out.println("Файл: " + path.toAbsolutePath());
+            System.out.println("Передано на сохранение: " + records.size());
+            System.out.println("Прочитано из файла: " + loadedRecords.size());
+
+            for (AggregatedRecord record : loadedRecords) {
+                System.out.println("Источник: " + record.getSource());
+                System.out.println("Категория: " + record.getCategory());
+                System.out.println("Название: " + record.getTitle());
+                System.out.println("Время получения: " + record.getFetchedAt());
+                System.out.println("Характеристики: " + record.getAttributes());
+                System.out.println();
+            }
 
             System.out.println("Получено записей: " + records.size());
             System.out.println("Источники данных:");
@@ -36,13 +61,13 @@ public class Main {
             System.out.println("  Маршруты — OSRM: https://project-osrm.org/");
             System.out.println();
 
-            for (AggregatedRecord record : records) {
+            /*for (AggregatedRecord record : records) {
                 System.out.println("Источник: " + record.getSource());
                 System.out.println("Категория: " + record.getCategory());
                 System.out.println("Название: " + record.getTitle());
                 System.out.println("Характеристики: " + record.getAttributes());
                 System.out.println();
-            }
+            }*/
         } catch (ApiResponseException e) {
             System.err.println("Ошибка ответа API: " + e.getMessage());
         } catch (JsonSyntaxException e) {
@@ -50,7 +75,7 @@ public class Main {
         } catch (IllegalArgumentException e) {
             System.err.println("Некорректный аргумент: " + e.getMessage());
         } catch (IOException e) {
-            System.err.println("Ошибка соединения: " + e.getMessage());
+            System.err.println("Ошибка ввода-вывода: " + e.getMessage());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.err.println("Запрос прерван");
