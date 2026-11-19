@@ -57,6 +57,11 @@ public class ConsoleApplication {
     }
 
     public void run(String[] args) throws IOException, InterruptedException {
+        if (args.length == 1 && args[0].equals("--help")) {
+            printHelp();
+            return;
+        }
+
         CliOptions options = parser_.parse(args);
 
         switch (options.getCommand()) {
@@ -73,5 +78,25 @@ public class ConsoleApplication {
         System.out.println("Время получения: " + record.getFetchedAt());
         System.out.println("Характеристики: " + record.getAttributes());
         System.out.println();
+    }
+
+    private void printHelp() {
+        System.out.println("""
+            Сбор данных:
+              collect --sources <источники> --format <csv|json> --mode <new|append> --file <путь>
+
+            Просмотр файла:
+              view --format <csv|json> --file <путь> [--source <источник>]
+
+            Источники: openvan, wikipedia, osrm
+            Несколько источников указываются через запятую.
+
+            Режимы записи:
+              new    — создать или перезаписать файл
+              append — добавить записи
+
+            Пример:
+              collect --sources openvan,wikipedia --format json --mode new --file records.json
+            """);
     }
 }
