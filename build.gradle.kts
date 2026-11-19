@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    id("application")
 }
 
 group = "org.example"
@@ -25,4 +26,8 @@ tasks.test {
 tasks.withType<JavaExec>().configureEach {
     systemProperty("stdout.encoding", "UTF-8")
     systemProperty("stderr.encoding", "UTF-8")
+}
+
+application {
+    mainClass.set("app.Main")
 }
