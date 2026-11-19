@@ -1,6 +1,6 @@
 package storage;
 
-import exception.CliException;
+import exception.RegistryException;
 
 import java.util.Map;
 
@@ -15,7 +15,7 @@ public class StorageRegistry {
         RecordStorage storage = storages_.get(format);
 
         if (storage == null) {
-            throw new CliException("Неизвестный формат хранения: " + format);
+            throw new RegistryException("Неизвестный формат хранения: " + format);
         }
 
         return storage;

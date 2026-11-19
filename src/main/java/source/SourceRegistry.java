@@ -1,6 +1,6 @@
 package source;
 
-import exception.CliException;
+import exception.RegistryException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,7 +25,7 @@ public class SourceRegistry {
             DataSource source = sources_.get(name);
 
             if (source == null) {
-                throw new CliException("Неизвестный источник: " + name);
+                throw new RegistryException("Неизвестный источник: " + name);
             }
 
             selected.add(source);
