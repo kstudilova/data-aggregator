@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import model.AggregatedRecord;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 import java.io.BufferedReader;
@@ -35,25 +36,13 @@ public class CsvStorage implements RecordStorage {
 
         StandardOpenOption mode = append ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING;
 
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, mode)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, mode); CSVPrinter printer = new CSVPrinter(writer, CSVFormat.RFC4180)) {
             if (writeHeader) {
-                writer.write("source,category,title,fetchedAt,attributes");
-                writer.newLine();
+                printer.printRecord("source", "category", "title", "fetchedAt", "attributes");
             }
 
             for (AggregatedRecord record : records) {
-                String attributesJson = gson_.toJson(record.getAttributes());
-
-                String line = String.join(",",
-                        escapeCsv(record.getSource()),
-                        escapeCsv(record.getCategory()),
-                        escapeCsv(record.getTitle()),
-                        escapeCsv(record.getFetchedAt().toString()),
-                        escapeCsv(attributesJson)
-                );
-
-                writer.write(line);
-                writer.newLine();
+                printer.printRecord(record.getSource(), record.getCategory(), record.getTitle(), record.getFetchedAt().toString(), gson_.toJson(record.getAttributes()));
             }
         }
     }
@@ -102,9 +91,5 @@ public class CsvStorage implements RecordStorage {
         }
 
         return records;
-    }
-
-    private String escapeCsv(String value) {
-        return "\"" + value.replace("\"", "\"\"") + "\"";
     }
 }
