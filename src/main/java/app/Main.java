@@ -12,6 +12,7 @@ import source.OpenVanSource;
 import source.OsrmSource;
 import source.WikipediaSource;
 import storage.CsvStorage;
+import storage.JsonStorage;
 import storage.RecordStorage;
 
 import java.io.IOException;
@@ -31,8 +32,8 @@ public class Main {
         DataAggregator aggregator = new DataAggregator(sources);
 
         Gson gson = new Gson();
-        RecordStorage storage = new CsvStorage(gson);
-        Path path = Path.of("csv-check.csv");
+        RecordStorage storage = new JsonStorage(gson);
+        Path path = Path.of("json-check.json");
 
         try {
             List<AggregatedRecord> records = aggregator.collect();
