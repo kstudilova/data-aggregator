@@ -1,6 +1,7 @@
 package app;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import exception.ApiResponseException;
 import http.HttpService;
@@ -31,7 +32,8 @@ public class Main {
         );
         DataAggregator aggregator = new DataAggregator(sources);
 
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
         RecordStorage storage = new JsonStorage(gson);
         Path path = Path.of("json-check.json");
 
